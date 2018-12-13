@@ -2,9 +2,52 @@ version: '3'
 services:
   nginx: 
     image: nginx:latest
-    container_name: production_nginx
+    container_name: production_nginx_pro
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/proxy.conf
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
       - 80:80
       - 443:443
+    links:
+      - app:gogollellero_app_pro
+      - client:gogollellero_client_pro
+  app:
+    build:
+      context: ./gogollellero
+      dockerfile: Dockerfile
+    container_name: gogollellero_app_pro
+    volumes:
+      - './gogollellero:/go/src/github.com/miyanokomiya/gogollellero'
+    environment:
+      PORT: 8080
+      CLIENT_HOST: 'http://localhost:3000' # cors対応用
+    ports:
+      - '8080:8080'
+    command: bash -c "dep ensure && GO_ENV=development gin -p 8080"
+    links:
+      - db:gogollellero_db_pro
+    tty: true
+  db:
+    image: mysql:5.7
+    container_name: gogollellero_db_pro
+    volumes:
+      - './gogollellero/.db:/var/lib/mysql'
+      - ./gogollellero/db/init:/docker-entrypoint-initdb.d
+    environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_USER: miyanokomiya
+        MYSQL_PASSWORD: miyanokomiya
+        MYSQL_DATABASE: gogollellero
+    ports:
+      - '3306:3306'
+  client:
+    build:
+      context: ./gogollellero_client
+      dockerfile: Dockerfile
+    container_name: gogollellero_client_pro
+    tty: true
+    volumes:
+      - "./gogollellero_client:/app"
+    ports:
+      - "3000:3000"
+    command: bash -c "yarn install && yarn dev"
