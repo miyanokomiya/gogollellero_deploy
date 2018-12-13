@@ -1,0 +1,6 @@
+[submodule "gogollellero"]
+	path = gogollellero
+	url = https://github.com/miyanokomiya/gogollellero.git
+[submodule "gogollellero_client"]
+	path = gogollellero_client
+	url = https://github.com/miyanokomiya/gogollellero_client.git
